@@ -1,7 +1,7 @@
 import { session, ipcMain, BrowserWindow } from "electron";
-import { ElectronBlocker, Request } from "@cliqz/adblocker-electron";
+import { FiltersEngine, Request } from "@cliqz/adblocker";
 
-let blocker: ElectronBlocker | null = null;
+let engine: FiltersEngine | null = null;
 
 const stats = {
   adsBlocked: 0,
@@ -15,15 +15,15 @@ function broadcastStats() {
 }
 
 export async function initializeAdblocker(): Promise<void> {
-  if (blocker) return;
+  if (engine) return;
 
   try {
-    blocker = await ElectronBlocker.fromPrebuiltAdsAndTracking(fetch);
+    engine = await FiltersEngine.fromPrebuiltAdsAndTracking(fetch);
 
     const filter = { urls: ["<all_urls>"] };
 
     session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
-      if (!blocker) {
+      if (!engine) {
         callback({});
         return;
       }
@@ -41,11 +41,11 @@ export async function initializeAdblocker(): Promise<void> {
         return;
       }
 
-      if (blocker.config.guessRequestTypeFromUrl === true && request.type === "other") {
+      if (request.type === "other") {
         request.guessTypeOfRequest();
       }
 
-      const { redirect, match } = blocker.match(request);
+      const { redirect, match } = engine.match(request);
       if (redirect) {
         callback({ redirectURL: redirect.dataUrl });
       } else if (match) {
