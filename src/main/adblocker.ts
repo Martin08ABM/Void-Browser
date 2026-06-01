@@ -1,7 +1,7 @@
 import { session, ipcMain, BrowserWindow } from "electron";
-import { FiltersEngine, Request } from "@cliqz/adblocker";
+import { ElectronBlocker, Request } from "@cliqz/adblocker-electron";
 
-let engine: FiltersEngine | null = null;
+let blocker: ElectronBlocker | null = null;
 
 const stats = {
   adsBlocked: 0,
@@ -15,15 +15,17 @@ function broadcastStats() {
 }
 
 export async function initializeAdblocker(): Promise<void> {
-  if (engine) return;
+  if (blocker) return;
 
   try {
-    engine = await FiltersEngine.fromPrebuiltAdsAndTracking(fetch);
+    // fromPrebuiltFull incluye: ads + tracking + annoyances + cookie banners
+    blocker = await ElectronBlocker.fromPrebuiltFull(fetch);
 
-    const filter = { urls: ["<all_urls>"] };
-
-    session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
-      if (!engine) {
+    // Envolvemos onBeforeRequest para contar bloqueos antes de que el blocker
+    // registre sus listeners en la sesión.
+    const originalOnBeforeRequest = blocker.onBeforeRequest.bind(blocker);
+    blocker.onBeforeRequest = (details, callback) => {
+      if (!blocker) {
         callback({});
         return;
       }
@@ -36,28 +38,19 @@ export async function initializeAdblocker(): Promise<void> {
         tabId: details.webContentsId,
       });
 
-      if (request.isMainFrame()) {
-        callback({});
-        return;
+      if (!request.isMainFrame()) {
+        const { match } = blocker.match(request);
+        if (match) {
+          stats.adsBlocked++;
+          broadcastStats();
+        }
       }
 
-      if (request.type === "other") {
-        request.guessTypeOfRequest();
-      }
+      originalOnBeforeRequest(details, callback);
+    };
 
-      const { redirect, match } = engine.match(request);
-      if (redirect) {
-        callback({ redirectURL: redirect.dataUrl });
-      } else if (match) {
-        stats.adsBlocked++;
-        broadcastStats();
-        callback({ cancel: true });
-      } else {
-        callback({});
-      }
-    });
-
-    console.log("[VoidShield] Adblocker initialized with prebuilt lists");
+    blocker.enableBlockingInSession(session.defaultSession);
+    console.log("[VoidShield] Adblocker initialized with full filter lists (ads + tracking + annoyances)");
   } catch (err) {
     console.error("[VoidShield] Failed to initialize adblocker:", err);
   }
