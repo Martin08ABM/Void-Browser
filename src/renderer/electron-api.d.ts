@@ -17,6 +17,10 @@ export interface ElectronAPI {
   onAdblockStatsUpdate: (
     callback: (stats: AdblockStats) => void
   ) => () => void;
+
+  minimizeWindow: () => Promise<void>;
+  maximizeWindow: () => Promise<void>;
+  closeWindow: () => Promise<void>;
 }
 
 declare global {

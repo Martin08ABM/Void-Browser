@@ -1,6 +1,6 @@
 .tabs-bar {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 4px;
     padding: 4px 8px 0 8px;
     background-color: var(--color-surface, #1e1e1e);
@@ -8,6 +8,7 @@
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;
+    -webkit-app-region: drag;
 }
 
 .tabs-container {
@@ -17,6 +18,7 @@
     flex: 1;
     overflow-x: auto;
     scrollbar-width: none;
+    -webkit-app-region: no-drag;
 }
 
 .tabs-container::-webkit-scrollbar {
@@ -130,4 +132,37 @@
 .tabs-new-tab:hover {
     background-color: var(--color-surface-hover, #2a2a2a);
     color: var(--color-text, #e0e0e0);
+}
+
+/* ─── Window controls ─── */
+.window-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+    -webkit-app-region: no-drag;
+}
+
+.window-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-secondary-text, #888);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.window-btn:hover {
+    background-color: var(--color-surface-hover, #2a2a2a);
+    color: var(--color-text, #e0e0e0);
+}
+
+.window-btn--close:hover {
+    background-color: var(--color-danger, #e74c3c);
+    color: #fff;
 }

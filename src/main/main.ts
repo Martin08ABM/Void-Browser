@@ -46,10 +46,33 @@ ipcMain.handle('clear-permissions', (_, origin: string) => {
   permissionsMap.delete(origin);
 });
 
+// ─── Window controls ───
+ipcMain.handle('window-minimize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  win?.minimize();
+});
+
+ipcMain.handle('window-maximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win?.isMaximized()) {
+    win.unmaximize();
+  } else {
+    win?.maximize();
+  }
+});
+
+ipcMain.handle('window-close', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  win?.close();
+});
+
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     show: false,
+    frame: false,
+    autoHideMenuBar: true,
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       webviewTag: true,
@@ -69,10 +92,8 @@ const createWindow = () => {
     );
   }
 
-  mainWindow.maximize()
-  mainWindow.show()
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  mainWindow.maximize();
+  mainWindow.show();
 };
 
 // This method will be called when Electron has finished
