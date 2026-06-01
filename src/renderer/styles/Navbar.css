@@ -1,0 +1,124 @@
+.navbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 40px;
+    padding: 0 8px;
+    background-color: var(--color-surface, #5E6572);
+    box-sizing: border-box;
+    position: relative;
+}
+
+.navbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-principal-text, #EEF1EF);
+    cursor: pointer;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.navbar-btn:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.navbar-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.navbar-btn.loading {
+    animation: navbar-spin 1s linear infinite;
+}
+
+@keyframes navbar-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.navbar-lock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--color-secure-https, #4E9E7A);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.navbar-lock:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.navbar-lock.insecure {
+    color: var(--color-insecure-https, #C75B5B);
+}
+
+.navbar-urlbar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.navbar-urlbar-input {
+    width: 100%;
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.25);
+    color: var(--color-principal-text, #EEF1EF);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.navbar-urlbar-input::placeholder {
+    color: var(--color-secondary-text, #A9B4C2);
+}
+
+.navbar-urlbar-input:focus {
+    border-color: var(--color-accent, #7D98A1);
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.navbar-blocker {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: var(--color-secondary-text, #A9B4C2);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+}
+
+.navbar-blocker:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.navbar-blocker-label {
+    display: none;
+}
+
+@media (min-width: 640px) {
+    .navbar-blocker-label {
+        display: inline;
+    }
+}

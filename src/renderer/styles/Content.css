@@ -1,0 +1,52 @@
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-background, #0A0A0A);
+    overflow: hidden;
+    position: relative;
+}
+
+.content-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--color-secondary-text, #A9B4C2);
+    text-align: center;
+    padding: 32px;
+}
+
+.content-empty-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.content-empty-subtitle {
+    margin: 0;
+    font-size: 14px;
+}
+
+.webview-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+.webview-container.active {
+    display: flex;
+}
+
+webview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+}

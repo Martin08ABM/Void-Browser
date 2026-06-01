@@ -1,0 +1,29 @@
+/* Font importation */
+@import '@fontsource/inter';
+
+/* Set the CSS variables */
+:root {
+    --color-background: #0A0A0A;
+    --color-surface: #5E6572;
+    --color-surface-hover: #4a505c;
+    --color-accent: #7D98A1;
+    --color-secure-https: #4E9E7A;
+    --color-insecure-https: #C75B5B;
+    --color-principal-text: #EEF1EF;
+    --color-secondary-text: #A9B4C2;
+    --color-text: #EEF1EF;
+    --color-border: #3a3f4a;
+    --color-danger: #e74c3c;
+    --font-inter: 'Inter', sans-serif;
+}
+
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+    font-family: var(--font-inter);
+    background-color: var(--color-background);
+    color: var(--color-principal-text);
+    display: flex;
+    flex-direction: column;
+}

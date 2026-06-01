@@ -1,0 +1,133 @@
+.tabs-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 4px 8px 0 8px;
+    background-color: var(--color-surface, #1e1e1e);
+    border-bottom: 1px solid var(--color-border, #333);
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tabs-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 120px;
+    max-width: 200px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 8px 8px 0 0;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tab--inactive {
+    background-color: transparent;
+    color: var(--color-secondary-text, #888);
+    border: 1px solid var(--color-border, #333);
+}
+
+.tab--inactive:hover {
+    background-color: var(--color-surface-hover, #2a2a2a);
+    color: var(--color-text, #e0e0e0);
+}
+
+.tab--active {
+    background-color: var(--color-background, #121212);
+    color: var(--color-text, #e0e0e0);
+    border: 1px solid var(--color-border, #333);
+    border-bottom: none;
+    z-index: 1;
+}
+
+.tab--active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--color-background, #121212);
+}
+
+.tab-favicon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.tab--active .tab-favicon {
+    opacity: 1;
+}
+
+.tab-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+    padding: 0;
+}
+
+.tab:hover .tab-close {
+    opacity: 1;
+}
+
+.tab-close:hover {
+    background-color: var(--color-danger, #e74c3c);
+    color: #fff;
+}
+
+.tabs-new-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-secondary-text, #888);
+    cursor: pointer;
+    margin-bottom: 2px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tabs-new-tab:hover {
+    background-color: var(--color-surface-hover, #2a2a2a);
+    color: var(--color-text, #e0e0e0);
+}

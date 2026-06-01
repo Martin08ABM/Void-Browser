@@ -1,0 +1,279 @@
+/* ─── Shared popup shell (fixed position) ─── */
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: rgba(0, 0, 0, 0.25);
+    animation: overlay-in 0.15s ease;
+}
+
+@keyframes overlay-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.popup-box {
+    position: fixed;
+    z-index: 9999;
+    background-color: var(--color-surface, #5E6572);
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    animation: popup-in 0.18s ease;
+    overflow: hidden;
+}
+
+@keyframes popup-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Security popup ─── */
+.security-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.security-popup-header.secure {
+    background-color: rgba(78, 158, 122, 0.12);
+}
+
+.security-popup-header.insecure {
+    background-color: rgba(199, 91, 91, 0.12);
+}
+
+.security-popup-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.security-popup-header.secure .security-popup-icon {
+    color: var(--color-secure-https, #4E9E7A);
+}
+
+.security-popup-header.insecure .security-popup-icon {
+    color: var(--color-insecure-https, #C75B5B);
+}
+
+.security-popup-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.security-popup-domain {
+    font-size: 11px;
+    color: var(--color-secondary-text, #A9B4C2);
+    margin-top: 1px;
+    word-break: break-all;
+}
+
+.security-popup-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.security-popup-section:last-child {
+    border-bottom: none;
+}
+
+.security-popup-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-secondary-text, #A9B4C2);
+    margin-bottom: 6px;
+}
+
+.security-popup-cert {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.security-popup-perms {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.security-popup-perm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.security-popup-perm-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.security-popup-perm.granted .security-popup-perm-dot {
+    background-color: var(--color-secure-https, #4E9E7A);
+}
+
+.security-popup-perm.denied .security-popup-perm-dot {
+    background-color: var(--color-insecure-https, #C75B5B);
+}
+
+.security-popup-perm-name {
+    flex: 1;
+}
+
+.security-popup-perm-status {
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.75;
+}
+
+.security-popup-clear {
+    width: calc(100% - 32px);
+    margin: 0 16px 14px;
+    padding: 7px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--color-principal-text, #EEF1EF);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.security-popup-clear:hover {
+    background-color: rgba(0, 0, 0, 0.35);
+}
+
+/* ─── VoidShield popup ─── */
+.voidshield-popup-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    background-color: rgba(125, 152, 161, 0.12);
+}
+
+.voidshield-popup-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-accent, #7D98A1);
+}
+
+.voidshield-popup-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.voidshield-popup-subtitle {
+    font-size: 11px;
+    color: var(--color-secondary-text, #A9B4C2);
+    margin-top: 1px;
+}
+
+.voidshield-popup-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.voidshield-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 12px 8px;
+    background-color: var(--color-surface, #5E6572);
+}
+
+.voidshield-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.voidshield-stat-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--color-secondary-text, #A9B4C2);
+    text-align: center;
+}
+
+.voidshield-popup-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.voidshield-popup-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-secondary-text, #A9B4C2);
+    margin-bottom: 6px;
+}
+
+.voidshield-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-principal-text, #EEF1EF);
+}
+
+.voidshield-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.voidshield-status.active .voidshield-status-dot {
+    background-color: var(--color-secure-https, #4E9E7A);
+    box-shadow: 0 0 6px var(--color-secure-https, #4E9E7A);
+}
+
+.voidshield-status.inactive .voidshield-status-dot {
+    background-color: var(--color-insecure-https, #C75B5B);
+}
+
+.voidshield-popup-actions {
+    padding: 0 16px 14px;
+}
+
+.voidshield-popup-reset {
+    width: 100%;
+    padding: 7px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--color-principal-text, #EEF1EF);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.voidshield-popup-reset:hover {
+    background-color: rgba(0, 0, 0, 0.35);
+}

@@ -1,0 +1,93 @@
+.settings-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-background, #0A0A0A);
+    color: var(--color-principal-text, #EEF1EF);
+    overflow-y: auto;
+}
+
+.settings-page-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border, #333);
+    background-color: var(--color-surface, #5E6572);
+}
+
+.settings-page-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-principal-text, #EEF1EF);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.settings-page-back:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.settings-page-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.settings-page-content {
+    padding: 20px 16px;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.settings-section {
+    background-color: var(--color-surface, #5E6572);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.settings-section-title {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-secondary-text, #A9B4C2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.settings-current-engine {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.settings-change-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--color-accent, #7D98A1);
+    background-color: transparent;
+    color: var(--color-principal-text, #EEF1EF);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.settings-change-btn:hover {
+    background-color: var(--color-accent, #7D98A1);
+    color: var(--color-background, #0A0A0A);
+}
