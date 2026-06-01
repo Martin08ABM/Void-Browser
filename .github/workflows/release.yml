@@ -1,0 +1,85 @@
+name: Build & Release
+
+on:
+  # Se ejecuta automáticamente cuando creas un tag que empiece por 'v'
+  # Ejemplo: git tag v1.0.0 && git push origin v1.0.0
+  push:
+    tags:
+      - 'v*'
+
+  # También puedes ejecutarlo manualmente desde la pestaña "Actions" de GitHub
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build & make
+        run: pnpm make
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: void-browser-${{ matrix.os }}
+          path: out/make/**/*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: void-browser-*
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/void-browser-windows-latest/**/*
+            artifacts/void-browser-macos-latest/**/*
+            artifacts/void-browser-ubuntu-latest/**/*
