@@ -5,6 +5,9 @@ export interface Tab {
   isActive: boolean;
   canGoBack?: boolean;
   canGoForward?: boolean;
+  favicon?: string;
+  isPlayingAudio?: boolean;
+  isMuted?: boolean;
 }
 
 export type PrivacyLevel = "high" | "medium" | "low";

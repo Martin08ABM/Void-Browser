@@ -9,7 +9,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: false,
+    asar: true,
     icon: 'assets/icon',
   },
   rebuildConfig: {},
@@ -35,6 +35,11 @@ const config: ForgeConfig = {
         },
         {
           entry: 'src/preload/preload.ts',
+          config: 'vite.preload.config.ts',
+          target: 'preload',
+        },
+        {
+          entry: 'src/preload/yt-adblock.ts',
           config: 'vite.preload.config.ts',
           target: 'preload',
         },

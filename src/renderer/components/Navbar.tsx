@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 
 import SecurityPopup from "./SecurityPopup";
 import VoidShieldPopup from "./VoidShieldPopup";
+import PrivacyHub from "./PrivacyHub";
 
 import "../styles/Navbar.css";
 import "../styles/Popups.css";
+import "../styles/PrivacyHub.css";
 
 export interface NavbarHandle {
   focusUrlBar: () => void;
@@ -48,9 +50,11 @@ ref: React.ForwardedRef<NavbarHandle>
   const [inputValue, setInputValue] = useState(url);
   const [showSecurityPopup, setShowSecurityPopup] = useState(false);
   const [showVoidShieldPopup, setShowVoidShieldPopup] = useState(false);
+  const [showPrivacyHub, setShowPrivacyHub] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const lockRef = useRef<HTMLSpanElement>(null);
   const voidShieldRef = useRef<HTMLDivElement>(null);
+  const privacyHubRef = useRef<HTMLButtonElement>(null);
 
   useImperativeHandle(ref, () => ({
     focusUrlBar: () => {
@@ -73,11 +77,19 @@ ref: React.ForwardedRef<NavbarHandle>
   const openSecurity = () => {
     setShowSecurityPopup(true);
     setShowVoidShieldPopup(false);
+    setShowPrivacyHub(false);
   };
 
   const openVoidShield = () => {
     setShowVoidShieldPopup(true);
     setShowSecurityPopup(false);
+    setShowPrivacyHub(false);
+  };
+
+  const openPrivacyHub = () => {
+    setShowPrivacyHub(true);
+    setShowSecurityPopup(false);
+    setShowVoidShieldPopup(false);
   };
 
   return (
@@ -159,6 +171,18 @@ ref: React.ForwardedRef<NavbarHandle>
           />
         </form>
 
+        <button
+          ref={privacyHubRef}
+          className="navbar-btn"
+          onClick={openPrivacyHub}
+          aria-label="Privacy Hub"
+          title="Privacy Hub"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+          </svg>
+        </button>
+
         <div
           ref={voidShieldRef}
           className="navbar-blocker"
@@ -202,6 +226,14 @@ ref: React.ForwardedRef<NavbarHandle>
           anchorRef={voidShieldRef}
           onClose={() => setShowVoidShieldPopup(false)}
           onReset={onResetAdblockStats}
+        />
+      )}
+
+      {showPrivacyHub && (
+        <PrivacyHub
+          anchorRef={privacyHubRef}
+          onClose={() => setShowPrivacyHub(false)}
+          onOpenUrl={onNavigate}
         />
       )}
     </>

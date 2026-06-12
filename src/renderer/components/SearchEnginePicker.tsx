@@ -5,6 +5,7 @@ import "../styles/SearchEnginePicker.css";
 
 interface SearchEnginePickerProps {
   onSelect: (engine: SearchEngine) => void;
+  onCancel?: () => void;
   title?: string;
 }
 
@@ -41,12 +42,32 @@ const privacyConfig: Record<
 
 export default function SearchEnginePicker({
   onSelect,
+  onCancel,
   title = "Elige tu motor de búsqueda",
 }: SearchEnginePickerProps) {
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && onCancel) {
+      onCancel();
+    }
+  };
+
   return (
-    <div className="search-engine-picker-overlay">
+    <div className="search-engine-picker-overlay" onClick={handleBackdropClick}>
       <div className="search-engine-picker-card">
-        <h2 className="search-engine-picker-title">{title}</h2>
+        <div className="search-engine-picker-header">
+          <h2 className="search-engine-picker-title">{title}</h2>
+          {onCancel && (
+            <button
+              className="search-engine-picker-close"
+              onClick={onCancel}
+              aria-label="Cerrar"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            </button>
+          )}
+        </div>
         <p className="search-engine-picker-subtitle">
           Selecciona el motor que se usará por defecto al buscar desde la barra de direcciones.
         </p>

@@ -166,3 +166,29 @@
     background-color: var(--color-danger, #e74c3c);
     color: #fff;
 }
+
+.tab-spinner {
+    animation: tab-spin 1s linear infinite;
+}
+
+@keyframes tab-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.tab-audio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.8;
+    color: var(--color-accent, #7D98A1);
+}
+
+.tab--dragging {
+    opacity: 0.5;
+}
+
+.tab--drag-over {
+    border-left: 2px solid var(--color-accent, #7D98A1);
+}

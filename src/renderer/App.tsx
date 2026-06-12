@@ -1,15 +1,23 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 
 import { Tab, SearchEngine } from "./types";
 import { hasSearchEngine, useSearchEngine } from "./hooks/usePreferences";
+import { useHistory } from "./hooks/useHistory";
 
 import Tabs from "./components/Tabs";
 import Navbar, { NavbarHandle } from "./components/Navbar";
 import Content from "./components/Content";
-import SettingsPage from "./components/SettingsPage";
 import SearchEnginePicker from "./components/SearchEnginePicker";
+import ContextMenu, { ContextMenuItem } from "./components/ContextMenu";
 
 import "./styles/App.css";
+import "./styles/ContextMenu.css";
+
+const SettingsPage = React.lazy(() => import("./components/SettingsPage"));
+const HistoryPopup = React.lazy(() => import("./components/HistoryPopup"));
+
+const DEFAULT_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
 let nextTabId = 2;
 
@@ -18,7 +26,7 @@ function isUrlLike(text: string): boolean {
   if (/^www\./i.test(text)) return true;
   // Dominios simples como github.com, o con subdominios como mail.google.com
   if (/^[\w-]+(\.[\w-]+)*\.[a-z]{2,}/i.test(text)) return true;
-  if (/^(\d{1,3}\.){3}\d{1,3}/.test(text)) return true;
+  if (/(\d{1,3}\.){3}\d{1,3}/.test(text)) return true;
   if (/^localhost(:\d+)?/i.test(text)) return true;
   return false;
 }
@@ -47,6 +55,7 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(!hasSearchEngine());
   const [view, setView] = useState<"browser" | "settings">("browser");
   const [navbarVisible, setNavbarVisible] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
 
   const [tabs, setTabs] = useState<Tab[]>([
     { id: 1, title: "Nueva pestaña", url: "", isActive: true },
@@ -55,6 +64,21 @@ export default function App() {
   const [permissions, setPermissions] = useState<Record<string, "granted" | "denied">>({});
   const [loadingTabs, setLoadingTabs] = useState<Set<number>>(new Set());
   const [adblockStats, setAdblockStats] = useState({ adsBlocked: 0, trackersBlocked: 0 });
+  const [showFindBar, setShowFindBar] = useState(false);
+  const [findText, setFindText] = useState("");
+
+  const { history, addEntry, clearHistory } = useHistory();
+
+  // User-Agent for webviews — refreshed when leaving settings so new tabs pick up changes
+  const [userAgent, setUserAgent] = useState(DEFAULT_USER_AGENT);
+  useEffect(() => {
+    if (view !== "browser") return;
+    window.electronAPI?.getUserAgentString()
+      .then((ua) => { if (ua) setUserAgent(ua); })
+      .catch(() => { /* keep default */ });
+  }, [view]);
+
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; tabId: number } | null>(null);
 
   const activeTab = useMemo(() => tabs.find((t) => t.isActive), [tabs]);
   const activeTabId = activeTab?.id ?? tabs[0]?.id ?? 0;
@@ -62,6 +86,13 @@ export default function App() {
   const webviewRefs = useRef<Map<number, HTMLElement>>(new Map());
   const navbarRef = useRef<NavbarHandle>(null);
   const closedTabsRef = useRef<Tab[]>([]);
+
+  // ─── Record history when active tab navigates ───
+  useEffect(() => {
+    if (activeTab?.url && activeTab.url !== "") {
+      addEntry(activeTab.url, activeTab.title);
+    }
+  }, [activeTab?.url, activeTab?.title, addEntry]);
 
   // ─── Auto-focus URL bar on new/empty tabs ───
   useEffect(() => {
@@ -155,6 +186,27 @@ export default function App() {
     ]);
   }, []);
 
+  const handleNewTabWithUrl = useCallback((url: string) => {
+    const id = nextTabId++;
+    setTabs((prev) => [
+      ...prev.map((t) => ({ ...t, isActive: false })),
+      { id, title: url, url, isActive: true },
+    ]);
+  }, []);
+
+  const handleReorderTabs = useCallback((fromIndex: number, toIndex: number) => {
+    setTabs((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }, []);
+
+  const handleCreateIncognito = useCallback(() => {
+    window.electronAPI?.createIncognitoWindow();
+  }, []);
+
   const handleNavigate = useCallback((value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
@@ -205,6 +257,38 @@ export default function App() {
     }
   }, [getActiveWebview]);
 
+  const handleNextTab = useCallback(() => {
+    setTabs((prev) => {
+      const idx = prev.findIndex((t) => t.isActive);
+      if (idx === -1) return prev;
+      const nextIdx = (idx + 1) % prev.length;
+      return prev.map((t, i) => ({ ...t, isActive: i === nextIdx }));
+    });
+  }, []);
+
+  const handlePrevTab = useCallback(() => {
+    setTabs((prev) => {
+      const idx = prev.findIndex((t) => t.isActive);
+      if (idx === -1) return prev;
+      const prevIdx = (idx - 1 + prev.length) % prev.length;
+      return prev.map((t, i) => ({ ...t, isActive: i === prevIdx }));
+    });
+  }, []);
+
+  const handleFindInPage = useCallback((text: string) => {
+    const wv = getActiveWebview();
+    if (wv && "findInPage" in wv) {
+      (wv as any).findInPage(text, { forward: true, findNext: true });
+    }
+  }, [getActiveWebview]);
+
+  const handleStopFind = useCallback((action: "clearSelection" | "keepSelection" | "activateSelection") => {
+    const wv = getActiveWebview();
+    if (wv && "stopFindInPage" in wv) {
+      (wv as any).stopFindInPage(action);
+    }
+  }, [getActiveWebview]);
+
   // Webview callbacks
   const handleDidNavigate = useCallback((tabId: number, url: string) => {
     setTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, url } : t)));
@@ -234,6 +318,14 @@ export default function App() {
     });
   }, []);
 
+  const handleFaviconUpdated = useCallback((tabId: number, faviconUrl: string) => {
+    setTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, favicon: faviconUrl } : t)));
+  }, []);
+
+  const handleAudioStateChanged = useCallback((tabId: number, isPlaying: boolean) => {
+    setTabs((prev) => prev.map((t) => (t.id === tabId ? { ...t, isPlayingAudio: isPlaying } : t)));
+  }, []);
+
   const registerWebview = useCallback((tabId: number, el: HTMLElement | null) => {
     if (el) {
       webviewRefs.current.set(tabId, el);
@@ -248,46 +340,69 @@ export default function App() {
       onPageTitleUpdated: handlePageTitleUpdated,
       onUpdateNavigationState: handleUpdateNavigationState,
       onLoadingState: handleLoadingState,
+      onFaviconUpdated: handleFaviconUpdated,
+      onAudioStateChanged: handleAudioStateChanged,
     }),
-    [handleDidNavigate, handlePageTitleUpdated, handleUpdateNavigationState, handleLoadingState]
+    [handleDidNavigate, handlePageTitleUpdated, handleUpdateNavigationState, handleLoadingState, handleFaviconUpdated, handleAudioStateChanged]
   );
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts via main process (works even when focus is inside webview)
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "h") {
-        e.preventDefault();
-        setNavbarVisible((v) => !v);
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === "t") {
-        e.preventDefault();
-        handleNewTab();
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === "w") {
-        e.preventDefault();
-        if (activeTabId) handleTabClose(activeTabId);
-      }
-      if (e.ctrlKey && e.key.toLowerCase() === "r") {
-        e.preventDefault();
-        handleReload();
-      }
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "t") {
-        e.preventDefault();
-        handleReopenTab();
-      }
-      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "b") {
-        e.preventDefault();
-        handleGoBack();
-      }
-      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        handleGoForward();
-      }
-    };
+    const api = window.electronAPI;
+    if (!api) return;
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [activeTabId, handleTabClose, handleReload, handleGoBack, handleGoForward, handleNewTab, handleReopenTab]);
+    const unsubscribers: (() => void)[] = [];
+
+    unsubscribers.push(api.onShortcut("toggle-history", () => setShowHistory((v) => !v)));
+    unsubscribers.push(api.onShortcut("toggle-navbar", () => setNavbarVisible((v) => !v)));
+    unsubscribers.push(api.onShortcut("new-tab", handleNewTab));
+    unsubscribers.push(
+      api.onShortcut("close-tab", () => {
+        if (activeTabId) handleTabClose(activeTabId);
+      })
+    );
+    unsubscribers.push(api.onShortcut("reload", handleReload));
+    unsubscribers.push(api.onShortcut("reopen-tab", handleReopenTab));
+    unsubscribers.push(api.onShortcut("go-back", handleGoBack));
+    unsubscribers.push(api.onShortcut("go-forward", handleGoForward));
+    unsubscribers.push(api.onShortcut("next-tab", handleNextTab));
+    unsubscribers.push(api.onShortcut("prev-tab", handlePrevTab));
+    unsubscribers.push(
+      api.onShortcut("find-in-page", () => {
+        setShowFindBar(true);
+        setFindText("");
+      })
+    );
+    unsubscribers.push(
+      api.onShortcut("focus-address-bar", () => {
+        navbarRef.current?.focusUrlBar();
+      })
+    );
+    unsubscribers.push(
+      api.onShortcut("new-incognito", handleCreateIncognito)
+    );
+
+    const unsubscribeContextMenu = api.onContextMenuNewTab((url) => {
+      handleNewTabWithUrl(url);
+    });
+    unsubscribers.push(unsubscribeContextMenu);
+
+    return () => {
+      unsubscribers.forEach((fn) => fn());
+    };
+  }, [
+    activeTabId,
+    handleTabClose,
+    handleReload,
+    handleGoBack,
+    handleGoForward,
+    handleNewTab,
+    handleReopenTab,
+    handleNextTab,
+    handlePrevTab,
+    handleCreateIncognito,
+    handleNewTabWithUrl,
+  ]);
 
   const isSecure = activeTab?.url ? activeTab.url.startsWith("https://") : true;
   const isLoading = activeTabId ? loadingTabs.has(activeTabId) : false;
@@ -305,6 +420,59 @@ export default function App() {
     if (result) setAdblockStats(result);
   }, []);
 
+  const handleTabContextMenu = useCallback((tabId: number, x: number, y: number) => {
+    setContextMenu({ x, y, tabId });
+  }, []);
+
+  const getContextMenuItems = (tabId: number): ContextMenuItem[] => {
+    const tab = tabs.find((t) => t.id === tabId);
+    if (!tab) return [];
+    return [
+      {
+        label: "Recargar",
+        onClick: () => {
+          const wv = webviewRefs.current.get(tabId);
+          if (wv && "reload" in wv) (wv as any).reload();
+        },
+      },
+      {
+        label: "Duplicar",
+        onClick: () => {
+          const id = nextTabId++;
+          setTabs((prev) => {
+            const idx = prev.findIndex((t) => t.id === tabId);
+            const newTab: Tab = { ...tab, id, isActive: true };
+            const next = prev.map((t) => ({ ...t, isActive: false }));
+            next.splice(idx + 1, 0, newTab);
+            return next;
+          });
+        },
+      },
+      {
+        label: "Cerrar",
+        onClick: () => handleTabClose(tabId),
+      },
+      {
+        label: "Cerrar otras",
+        onClick: () => {
+          setTabs((prev) => {
+            const kept = prev.find((t) => t.id === tabId);
+            return kept ? [{ ...kept, isActive: true }] : prev;
+          });
+        },
+      },
+      {
+        label: tab.isPlayingAudio ? "Silenciar" : "Silenciar",
+        onClick: () => {
+          const wv = webviewRefs.current.get(tabId);
+          if (wv && "setAudioMuted" in wv) {
+            (wv as any).setAudioMuted?.(!(tab as any).isMuted);
+          }
+        },
+      },
+    ];
+  };
+
   return (
     <div className="app">
       {showOnboarding && (
@@ -319,9 +487,12 @@ export default function App() {
       <Tabs
         tabs={tabs}
         activeTabId={activeTabId}
+        loadingTabs={loadingTabs}
         onTabClick={handleTabClick}
         onTabClose={handleTabClose}
         onNewTab={handleNewTab}
+        onTabContextMenu={handleTabContextMenu}
+        onReorderTabs={handleReorderTabs}
       />
 
       {view === "browser" ? (
@@ -353,13 +524,71 @@ export default function App() {
             activeTabId={activeTabId}
             callbacks={webviewCallbacks}
             registerWebview={registerWebview}
+            history={history}
+            onNavigate={handleNavigate}
+            userAgent={userAgent}
           />
+
+          {showFindBar && (
+            <div className="find-bar">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Buscar en página..."
+                value={findText}
+                onChange={(e) => {
+                  setFindText(e.target.value);
+                  if (e.target.value) handleFindInPage(e.target.value);
+                  else handleStopFind("clearSelection");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleFindInPage(findText);
+                  }
+                  if (e.key === "Escape") {
+                    handleStopFind("clearSelection");
+                    setShowFindBar(false);
+                  }
+                }}
+              />
+              <button
+                onClick={() => {
+                  handleStopFind("clearSelection");
+                  setShowFindBar(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </>
       ) : (
-        <SettingsPage
-          currentEngine={engine}
-          onChangeEngine={setEngine}
-          onBack={() => setView("browser")}
+        <Suspense fallback={<div className="app-loading">Cargando ajustes…</div>}>
+          <SettingsPage
+            currentEngine={engine}
+            onChangeEngine={setEngine}
+            onBack={() => setView("browser")}
+          />
+        </Suspense>
+      )}
+
+      {showHistory && (
+        <Suspense fallback={null}>
+          <HistoryPopup
+            history={history}
+            onClose={() => setShowHistory(false)}
+            onClear={clearHistory}
+            onNavigate={handleNavigate}
+          />
+        </Suspense>
+      )}
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={getContextMenuItems(contextMenu.tabId)}
+          onClose={() => setContextMenu(null)}
         />
       )}
     </div>
